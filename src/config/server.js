@@ -8,17 +8,6 @@ const fast = fastify();
 fast.register(require('fastify-cors'));
 fast.register(require('fastify-helmet'));
 
-fast.addHook('preHandler', async (request, reply) => {
-  try {
-    console.log(request);
-
-  } catch (err) {
-    throw new Error('Some errors occurred.');
-  } finally {
-    return;
-  }
-});
-
 fast.register(require(path.resolve('./src/controllers/user')));
 fast.register(require(path.resolve('./src/controllers/project')));
 fast.register(require(path.resolve('./src/controllers/event')));
