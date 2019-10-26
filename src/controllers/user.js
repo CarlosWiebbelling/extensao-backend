@@ -24,36 +24,34 @@ const user = async (fast, opts, done) => {
       }
     } catch (err) {
       reply.code(400);
-      return { message: err };
+      return { message: err.message };
     }
   });
 
   fast.get('/user/:id', async (request, reply) => {
     reply.type('application/json');
     try {
-      const response = {
-        message: 'deu bom'
-      };
+      const user = await UserModel.findById(request.params.id);
       reply.code(200);
-      return response;
+      return user;
 
     } catch (err) {
-      const response = {
-        message: 'deu ruim'
-      };
       reply.code(400);
-      return response;
+      return { message: err };
     }
   });
 
   fast.post('/user', userRegisterSchema, async (request, reply) => {
     reply.type('application/json');
     try {
+      if (request.body.password !== request.body.confirmPassword) {
+        throw new Error('Senha e confirmação não conferem.');
+      }
+
       const user = {
         name: request.body.name,
         email: request.body.email,
         password: request.body.password,
-        confirmPassword: request.body.confirmPassword
       };
 
       const userCreated = await UserModel.create(user);
@@ -61,21 +59,37 @@ const user = async (fast, opts, done) => {
       reply.code(200);
       return {};
     } catch (err) {
-      const response = {
-        message: 'Falha ao criar usuário!'
-      };
       reply.code(400);
-      return response;
+      console.log(err);
+      return { message: 'Não foi possível concluir o cadastro de usuário!' };
     }
   });
 
   fast.put('/user/:id', userUpdateSchema, async (request, reply) => {
     reply.type('application/json');
     try {
-      
-      
+      const payload = await verify(request.headers.token);
+      if (payload.id !== request.params.id) {
+        throw new Error('Não foi possível atualizar os dados!');
+      }
+
+      if (request.body.password !== request.body.confirmPassword) {
+        throw new Error('Senhas não conferem!');
+      }
+
+      const user = UserModel.findById(payload.id);
+
+      if (user.password !== request.body.currentPassword) {
+        throw new Error('Senhas não conferem!');
+      }
+
+      const userUpdated = {
+        name: request.body.name,
+        email: request.body.email,
+      }
+
       reply.code(200);
-      return response;
+      return {};
 
     } catch (err) {
       const response = {
@@ -89,18 +103,13 @@ const user = async (fast, opts, done) => {
   fast.delete('/user/:id', async (request, reply) => {
     reply.type('application/json');
     try {
-      const response = {
-        message: 'deu bom'
-      };
+
       reply.code(200);
-      return response;
+      return { message: 'deu bom' };
 
     } catch (err) {
-      const response = {
-        message: 'deu ruim'
-      };
       reply.code(400);
-      return response;
+      return { message: 'deu ruim' };
     }
   });
 
