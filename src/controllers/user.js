@@ -103,7 +103,6 @@ const user = async (fast, opts, done) => {
   fast.delete('/user/:id', async (request, reply) => {
     reply.type('application/json');
     try {
-
       reply.code(200);
       return { message: 'deu bom' };
 

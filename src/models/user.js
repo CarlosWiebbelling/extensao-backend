@@ -17,7 +17,6 @@ const UserSchema = new mongoose.Schema({
   },
   enrollment: {
     type: String,
-    unique: true,
     lowercase: true,
     trim: true
   },
@@ -50,7 +49,7 @@ const UserSchema = new mongoose.Schema({
   level: {
     type: Number,
     min: 1,
-    max: 5,
+    max: 3,
     default: 1
   },
   createdAt: {
