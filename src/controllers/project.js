@@ -1,22 +1,15 @@
-const verify = require('../config/auth');
+const { verify } = require('../config/auth');
 const ProjectModel = require('../models/project');
 const UserModel = require('../models/user');
+const { projectSchema } = require('../config/validation');
 
 const project = async (fast, opts, done) => {
   fast.get('/project', async (request, reply) => {
     reply.type('application/json');
     try {
-      const projects = await ProjectModels.find();
-      const output = projects.map((value, index, arr) => {
-        return { 
-          id: value.id, 
-          name: value.name, 
-          description: value.description,
-          projectAdmin: value.projectAdmins[0].name
-        };
-      });
+      const projects = await ProjectModel.find();
       reply.code(200);
-      return { output };
+      return { projects };
     } catch (err) {
       console.error(err);
       return { };
@@ -35,13 +28,19 @@ const project = async (fast, opts, done) => {
       return { project };
     } catch (err) {
       reply.code(400);
-      return { message: 'deu ruim'};
+      console.error(err);
+      return { message: err};
     }
   });
 
-  fast.post('/project', async (request, reply) =>{
+  fast.post('/project', projectSchema, async (request, reply) =>{
     reply.type('application/json');
     try{
+      if (!request.headers.token) {
+        reply.code(401);
+        return { };
+      }
+
       const payload = await verify(request.headers.token);
       if(payload.level < 3) {
         reply.code(403);
@@ -53,7 +52,7 @@ const project = async (fast, opts, done) => {
         tags: request.body.tags
       };
       project.projectAdmins = request.body.projectAdmins.map(async (value, index, arr) => {
-        user = await userModel.findById(value.id);
+        user = await UserModel.findById(value.id);
         if(!user) {
           throw message = "Não existe usuário com o id " + velue.id;
         }
@@ -64,37 +63,46 @@ const project = async (fast, opts, done) => {
       return { };
     } catch (err) {
       reply.code(400);
+      console.error(err);
       return { message: err };
     }
   });
 
-  fast.put('/project/:id', async (request, reply) =>{
+  fast.put('/project/:id', projectSchema, async (request, reply) =>{
     reply.type('application/json');
-    try{
+    try {
+      if (!request.headers.token) {
+        reply.code(401);
+        return { };
+      }
       const payload = await verify(request.headers.token);
       if(payload.level < 3) {
         reply.code(403);
         return { };
       }
-      const project = ProjectModel.findById(request.params.id);
+      const project = await ProjectModel.findById(request.params.id);
       if(!project){
         reply.code(404);
         return { };
       }
-      projectUpdated = {
-        name: request.body.name,
-        description: request.body.description,
-        tags: request.body.tags
-      };
-      projectUpdated.projectAdmins = request.body.projectAdmins.map(async (value, index, arr) => {
-        user = await userModel.findById(value.id);
+
+      project.name = request.body.name;
+      project.description = request.body.description;
+      project.tags = request.body.tags;
+
+      project.projectAdmins = request.body.projectAdmins.map(async (value, index, arr) => {
+        user = await UserModel.findById(value.id);
         if(!user) {
           throw message = "Não existe usuário com o id " + velue.id;
         }
         return { id: user.id, name: user.name };
       });
+
+      await project.save();
+
       reply.code(200);
-      return { };
+      return project;
+
     } catch (err) {
       reply.code(400);
       return { message: err};
@@ -104,16 +112,21 @@ const project = async (fast, opts, done) => {
   fast.delete('/project:id', async (request, reply) =>{
     reply.type('application/json');
     try{
+      if (!request.headers.token) {
+        reply.code(401);
+        return { };
+      }
       const payload = await verify(request.headers.token);
       if(payload.level < 3) {
         reply.code(403);
         return { };
       }
-      const project = ProjectModel.findById(request.params.id);
+      const project = await ProjectModel.findById(request.params.id);
       if(!project){
         reply.code(404);
         return { };
       }
+      await ProjectModel.deleteOne(project);
       reply.code(200);
       return { };
     } catch (err) {

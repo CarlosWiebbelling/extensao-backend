@@ -18,6 +18,7 @@ const user = async (fast, opts, done) => {
             email: user.email,
             level: user.level
           });
+
           reply.code(200);
           return { token };
         }
@@ -92,23 +93,31 @@ const user = async (fast, opts, done) => {
       return {};
 
     } catch (err) {
-      const response = {
-        message: 'deu ruim'
-      };
       reply.code(400);
-      return response;
+      return { message: err };
     }
   });
 
   fast.delete('/user/:id', async (request, reply) => {
     reply.type('application/json');
     try {
+      const payload = await verify(request.headers.token);
+      if(payload.level < 3) {
+        reply.code(403);
+        return { };
+      }
+      const user = UserModel.findById(request.params.id);
+      if(!user){
+        reply.code(404);
+        return { };
+      }
+      UserModel.deleteOne(user);
       reply.code(200);
-      return { message: 'deu bom' };
+      return { };
 
     } catch (err) {
       reply.code(400);
-      return { message: 'deu ruim' };
+      return { message: err };
     }
   });
 

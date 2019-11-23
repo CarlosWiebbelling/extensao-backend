@@ -23,16 +23,36 @@ const userLoginSchema = {
 }
 
 const userUpdateSchema = {
-  type: 'object',
-  required: ['name', 'email', 'enrolment', 'password', 'confirmPassword', 'level'],
-  properties: {
-    name: { type: 'string' },
-    email: { type: 'string', format: 'email' },
-    enrolment: { type: 'string' },
-    password: { type: 'string' },
-    confirmPassword: { type: 'string' },
-    level: { type: 'number' }
+  body: {
+    type: 'object',
+    required: ['name', 'email', 'enrolment', 'password', 'confirmPassword', 'level'],
+    properties: {
+      name: { type: 'string' },
+      email: { type: 'string', format: 'email' },
+      enrolment: { type: 'string' },
+      password: { type: 'string' },
+      confirmPassword: { type: 'string' },
+      level: { type: 'number' }
+    }
   }
 }
 
-module.exports = { userRegisterSchema, userLoginSchema, userUpdateSchema };
+const projectSchema = {
+  body: {
+    type: 'object',
+    required: ['name', 'description', 'projectAdmins', 'tags'],
+    properties: {
+      name: { type: 'string' },
+      description: { type: 'string' },
+      projectAdmins: { 
+        type: 'array',
+        items: { type: 'string' } 
+      },
+      tags: { 
+        type: 'array',
+        items: { type: 'string' }
+      }
+    }
+  }
+}
+module.exports = { userRegisterSchema, userLoginSchema, userUpdateSchema, projectSchema };
