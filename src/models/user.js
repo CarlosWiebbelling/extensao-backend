@@ -80,6 +80,7 @@ UserSchema.methods.comparePassword = async function (candidatePassword) {
   }
 };
 
+
 const UserModel = mongoose.model('User', UserSchema);
 
 module.exports = UserModel;

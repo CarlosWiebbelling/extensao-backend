@@ -46,7 +46,7 @@ const projectSchema = {
       description: { type: 'string' },
       projectAdmins: { 
         type: 'array',
-        items: { type: 'string' } 
+        items: { type: 'object' } 
       },
       tags: { 
         type: 'array',

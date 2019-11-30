@@ -42,6 +42,19 @@ const user = async (fast, opts, done) => {
     }
   });
 
+  fast.get('/user', async (request, reply) => {
+    reply.type('application/json');
+    try {
+      const users = await UserModel.find();
+      reply.code(200);
+      return users;
+
+    } catch (err) {
+      reply.code(400);
+      return { message: err };
+    }
+  });
+
   fast.post('/user', userRegisterSchema, async (request, reply) => {
     reply.type('application/json');
     try {
@@ -102,10 +115,13 @@ const user = async (fast, opts, done) => {
     reply.type('application/json');
     try {
       const payload = await verify(request.headers.token);
-      if(payload.level < 3) {
-        reply.code(403);
-        return { };
+      if(payload.id != request.params.id){
+        if(payload.level < 3) {
+          reply.code(403);
+          return { };
+        }
       }
+        
       const user = UserModel.findById(request.params.id);
       if(!user){
         reply.code(404);

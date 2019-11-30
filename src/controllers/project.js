@@ -51,13 +51,17 @@ const project = async (fast, opts, done) => {
         description: request.body.description,
         tags: request.body.tags
       };
-      project.projectAdmins = request.body.projectAdmins.map(async (value, index, arr) => {
-        user = await UserModel.findById(value.id);
+      const candidatesToAdmin = request.body.projectAdmins.map(async (value, index, arr) => {
+        const user = await UserModel.findOne({ email: value });
         if(!user) {
-          throw message = "Não existe usuário com o id " + velue.id;
+          throw message = "Não existe usuário com o email " + value;
         }
-        return { id: user.id, name: user.name };
+        console.log({ _id: user.id, name: user.name, email: user.email })
+        return { _id: user.id, name: user.name, email: user.email };
       });
+      project.projectAdmins = await Promise.all(candidatesToAdmin);
+      console.log(project.projectAdmins);
+
       const projectCreated = await ProjectModel.create(project);
       reply.code(200);
       return { };
@@ -90,14 +94,17 @@ const project = async (fast, opts, done) => {
       project.description = request.body.description;
       project.tags = request.body.tags;
 
-      project.projectAdmins = request.body.projectAdmins.map(async (value, index, arr) => {
-        user = await UserModel.findById(value.id);
+      const candidatesToAdmin = request.body.projectAdmins.map(async (value, index, arr) => {
+        const user = await UserModel.findOne({ email: value });
         if(!user) {
-          throw message = "Não existe usuário com o id " + velue.id;
+          throw message = "Não existe usuário com o email " + value;
         }
-        return { id: user.id, name: user.name };
+        console.log({ _id: user.id, name: user.name, email: user.email })
+        return { _id: user.id, name: user.name, email: user.email };
       });
 
+      project.projectAdmins = await Promise.all(candidatesToAdmin);
+      console.log(project.projectAdmins);
       await project.save();
 
       reply.code(200);
