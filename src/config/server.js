@@ -1,16 +1,16 @@
-const fastify = require('fastify');
-const path = require('path');
+const fastify = require("fastify");
+const path = require("path");
 
-const mode = (process.env.NODE_ENV) ? process.env.NODE_ENV : 'default';
+const mode = process.env.NODE_ENV ? process.env.NODE_ENV : "default";
 
 const fast = fastify();
 
-fast.register(require('fastify-cors'));
-fast.register(require('fastify-helmet'));
+fast.register(require("fastify-cors"));
+fast.register(require("fastify-helmet"));
 
-fast.register(require(path.resolve('./src/controllers/user')));
-fast.register(require(path.resolve('./src/controllers/project')));
-fast.register(require(path.resolve('./src/controllers/event')));
+fast.register(require(path.resolve("./src/controllers/user")));
+fast.register(require(path.resolve("./src/controllers/project")));
+fast.register(require(path.resolve("./src/controllers/event")));
 
 const listen = async (port, ip) => {
   try {

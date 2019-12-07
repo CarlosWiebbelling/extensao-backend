@@ -1,4 +1,4 @@
-const mongoose = require('../config/database');
+const mongoose = require("../config/database");
 
 // id, name, description, projectAdmins[], tags[], events[], usersSubscribed[]
 
@@ -27,7 +27,6 @@ const ProjectSchema = new mongoose.Schema({
   }
 });
 
-
-const ProjectModel = mongoose.model('Project', ProjectSchema);
+const ProjectModel = mongoose.model("Project", ProjectSchema);
 
 module.exports = ProjectModel;
