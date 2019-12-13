@@ -87,27 +87,55 @@ const user = async (fast, opts, done) => {
     reply.type("application/json");
     try {
       const payload = await verify(request.headers.token);
-      if (payload.id !== request.params.id) {
-        throw new Error("Não foi possível atualizar os dados!");
+
+      if (payload.level < 3) {
+        if (payload.id !== request.params.id) {
+          throw new Error("Não foi possível atualizar os dados!");
+        }
+
+        if (request.body.password !== request.body.confirmPassword) {
+          throw new Error("Senhas não conferem!");
+        }
+
+        const user = UserModel.findById(payload.id);
+
+        if (!(await user.comparePassword(request.body.currentPassword))) {
+          throw new Error("Senha inválida");
+        }
+
+        if (request.body.name) {
+          user.name = request.body.name;
+        }
+
+        if (request.body.email) {
+          user.email = request.body.email;
+        }
+
+        if (request.body.enrollment) {
+          user.enrollment = request.body.enrollment;
+        }
+
+        if (request.body.newPassword) {
+          user.password = request.body.newPassword;
+        }
+
+        const userUpdated = await user.save();
+
+        reply.code(200);
+        return { userUpdated };
+      } else {
+        const user = UserModel.findById(payload.id);
+        user.name = request.body.name;
+        user.email = request.body.email;
+        user.enrollment = request.body.enrollment;
+        user.password = request.body.newPassword;
+        user.level = request.body.level;
+
+        const userUpdated = await user.save();
+
+        reply.code(200);
+        return { userUpdated };
       }
-
-      if (request.body.password !== request.body.confirmPassword) {
-        throw new Error("Senhas não conferem!");
-      }
-
-      const user = UserModel.findById(payload.id);
-
-      if (user.password !== request.body.currentPassword) {
-        throw new Error("Senhas não conferem!");
-      }
-
-      const userUpdated = {
-        name: request.body.name,
-        email: request.body.email
-      };
-
-      reply.code(200);
-      return {};
     } catch (err) {
       reply.code(400);
       return { message: err };

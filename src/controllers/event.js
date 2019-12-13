@@ -77,8 +77,19 @@ const event = async (fast, opts, done) => {
         return {};
       }
 
+      const event = await EventModel.findById(request.params.id);
+      if (!event) {
+        reply.code(404);
+        return {};
+      }
+
       const payload = await verify(request.headers.token);
-      const project = await ProjectModel.findById(request.body.projectId);
+
+      const project = await ProjectModel.findById(event.projectId);
+      if (!project) {
+        reply.code(400);
+        return {};
+      }
       const [userRegistered] = project.projectAdmins.filter(
         user => user._id.toString() === payload.id
       );
@@ -88,8 +99,6 @@ const event = async (fast, opts, done) => {
         return {};
       }
 
-      const event = await EventModel.findById(request.params.id);
-
       event.projectId = request.body.projectId;
       event.name = request.body.name;
       event.speaker = request.body.speaker;
@@ -97,11 +106,12 @@ const event = async (fast, opts, done) => {
       event.attachments = request.body.attachments;
       event.usersSubscribed = request.body.usersSubscribed;
       event.usersAttended = request.body.usersAttended;
-
+      console.log("chegou aqui!");
       const eventUpdated = await event.save();
 
       return { event: eventUpdated };
     } catch (err) {
+      reply.code(500);
       console.error(err);
       return err;
     }
