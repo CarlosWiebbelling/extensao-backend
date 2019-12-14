@@ -17,13 +17,7 @@ const ProjectSchema = new mongoose.Schema({
     type: [{ _id: mongoose.Schema.Types.ObjectId, name: String, email: String }]
   },
   tags: {
-    type: [{ _id: mongoose.Schema.Types.ObjectId, name: String }]
-  },
-  events: {
-    type: [{ _id: mongoose.Schema.Types.ObjectId }]
-  },
-  usersSubscribed: {
-    type: [{ _id: mongoose.Schema.Types.ObjectId }]
+    type: [String]
   }
 });
 

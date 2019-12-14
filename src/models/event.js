@@ -23,7 +23,7 @@ const EventSchema = new mongoose.Schema({
   usersSubscribed: {
     type: [
       {
-        id: mongoose.Schema.Types.ObjectId,
+        _id: mongoose.Schema.Types.ObjectId,
         name: String
       }
     ]
@@ -31,7 +31,7 @@ const EventSchema = new mongoose.Schema({
   usersAttended: {
     type: [
       {
-        id: mongoose.Schema.Types.ObjectId,
+        _id: mongoose.Schema.Types.ObjectId,
         name: String
       }
     ]

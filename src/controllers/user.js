@@ -83,21 +83,21 @@ const user = async (fast, opts, done) => {
     }
   });
 
-  fast.put("/user/:id", userUpdateSchema, async (request, reply) => {
+  fast.put("/user/:email", userUpdateSchema, async (request, reply) => {
     reply.type("application/json");
     try {
       const payload = await verify(request.headers.token);
 
       if (payload.level < 3) {
-        if (payload.id !== request.params.id) {
+        if (payload.email !== request.params.email) {
           throw new Error("Não foi possível atualizar os dados!");
         }
 
-        if (request.body.password !== request.body.confirmPassword) {
+        if (request.body.newPassword !== request.body.confirmPassword) {
           throw new Error("Senhas não conferem!");
         }
 
-        const user = UserModel.findById(payload.id);
+        const user = await UserModel.findById(payload.id);
 
         if (!(await user.comparePassword(request.body.currentPassword))) {
           throw new Error("Senha inválida");
@@ -124,20 +124,25 @@ const user = async (fast, opts, done) => {
         reply.code(200);
         return { userUpdated };
       } else {
-        const user = UserModel.findById(payload.id);
+        const user = await UserModel.findOne({ email: request.params.email });
+        if (!user) {
+          reply.code(404);
+          return {};
+        }
+
         user.name = request.body.name;
         user.email = request.body.email;
         user.enrollment = request.body.enrollment;
         user.password = request.body.newPassword;
         user.level = request.body.level;
-
         const userUpdated = await user.save();
 
         reply.code(200);
-        return { userUpdated };
+        return {};
       }
     } catch (err) {
       reply.code(400);
+      console.log(err);
       return { message: err };
     }
   });
@@ -153,12 +158,12 @@ const user = async (fast, opts, done) => {
         }
       }
 
-      const user = UserModel.findById(request.params.id);
+      const user = await UserModel.findById(request.params.id);
       if (!user) {
         reply.code(404);
         return {};
       }
-      UserModel.deleteOne(user);
+      const deleted = await UserModel.deleteOne(user);
       reply.code(200);
       return {};
     } catch (err) {

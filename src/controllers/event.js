@@ -1,6 +1,7 @@
 const { verify } = require("../config/auth");
 const EventModel = require("../models/event");
 const ProjectModel = require("../models/project");
+const UserModel = require("../models/user");
 
 const event = async (fast, opts, done) => {
   fast.get("/event", async (request, reply) => {
@@ -99,7 +100,6 @@ const event = async (fast, opts, done) => {
         return {};
       }
 
-      event.projectId = request.body.projectId;
       event.name = request.body.name;
       event.speaker = request.body.speaker;
       event.schedule = request.body.schedule;
@@ -126,7 +126,9 @@ const event = async (fast, opts, done) => {
       }
 
       const payload = await verify(request.headers.token);
-      const project = await ProjectModel.findById(request.body.projectId);
+      const event = await EventModel.findById(request.params.id);
+      console.log(event);
+      const project = await ProjectModel.findById(event.projectId);
       const [userRegistered] = project.projectAdmins.filter(
         user => user._id.toString() === payload.id
       );
@@ -136,7 +138,60 @@ const event = async (fast, opts, done) => {
         return {};
       }
 
-      return { event: "1" };
+      project.events = project.events.filter(
+        event => event._id.toString() !== request.params.id
+      );
+      await project.save();
+      await EventModel.deleteOne(event);
+
+      return {};
+    } catch (err) {
+      console.error(err);
+      return err;
+    }
+  });
+
+  fast.get("/event/subscribe/:id", async (request, reply) => {
+    try {
+      if (!request.headers.token) {
+        reply.code(401);
+        return {};
+      }
+      const payload = await verify(request.headers.token);
+
+      const event = await EventModel.findById(request.params.id);
+      if (!event) {
+        reply.code(404);
+        return {};
+      }
+      const [user] = event.usersSubscribed.filter(
+        user => user._id.toString() === payload.id
+      );
+
+      const userFromDB = await UserModel.findById(payload.id);
+
+      if (user) {
+        const updatedUsersSubscribed = event.usersSubscribed.filter(
+          user => user._id.toString() !== payload.id
+        );
+        event.usersSubscribed = updatedUsersSubscribed;
+
+        const updatedEventsSubcrived = userFromDB.eventsSubscribed.filter(
+          eventSub => eventSub._id.toString() !== event.id.toString()
+        );
+        userFromDB.eventsSubscribed = updatedEventsSubcrived;
+      } else {
+        userFromDB.eventsSubscribed.push({
+          _id: event.id,
+          name: event.name
+        });
+
+        event.usersSubscribed.push({ _id: payload.id, name: userFromDB.name });
+      }
+
+      await userFromDB.save();
+      await event.save();
+      return {};
     } catch (err) {
       console.error(err);
       return err;
